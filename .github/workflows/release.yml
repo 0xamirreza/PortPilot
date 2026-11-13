@@ -1,0 +1,95 @@
+name: Release AppImage
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Release AppImage (x86_64)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version tag
+        id: get_tag
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG=$(grep 'const Number =' internal/version/version.go | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+            if [ -z "$TAG" ]; then
+              TAG="v0.9.0"
+            fi
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Release tag will be: ${TAG}"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc make pkg-config \
+            libx11-dev libx11-xcb-dev libxcursor-dev libxfixes-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev \
+            libwayland-dev libegl1-mesa-dev libvulkan-dev \
+            policykit-1 libfuse2 file wget
+
+      - name: Download and prepare appimagetool
+        run: |
+          mkdir -p build
+          wget -q -O build/appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x build/appimagetool
+          (cd build && ./appimagetool --appimage-extract)
+          ln -sf "$(pwd)/build/squashfs-root/AppRun" build/appimagetool-bin
+
+      - name: Build PortPilot AppImage
+        env:
+          APPIMAGETOOL: ${{ github.workspace }}/build/appimagetool-bin
+        run: |
+          make appimage
+          ls -lh dist/
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd dist
+          if [ -f PortPilot-x86_64.AppImage ]; then
+            sha256sum PortPilot-x86_64.AppImage > PortPilot-x86_64.AppImage.sha256
+          fi
+
+      - name: Upload AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PortPilot-x86_64.AppImage
+          path: |
+            dist/PortPilot-x86_64.AppImage
+            dist/PortPilot-x86_64.AppImage.sha256
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: Release ${{ steps.get_tag.outputs.tag }}
+          files: |
+            dist/PortPilot-x86_64.AppImage
+            dist/PortPilot-x86_64.AppImage.sha256
+          draft: false
+          prerelease: false
+          generate_release_notes: true

@@ -1,0 +1,10 @@
+/bin/
+/dist/
+/build/
+/portpilot
+*.db
+*.db-wal
+*.db-shm
+*.db.bak
+*.log
+.DS_Store
