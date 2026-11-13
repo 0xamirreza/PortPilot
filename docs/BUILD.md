@@ -31,6 +31,7 @@ make build
 make test
 make lint
 make doctor
+make appimage
 make release
 make clean
 ```
