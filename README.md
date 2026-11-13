@@ -1,4 +1,17 @@
-# PortPilot
+<div align="center">
+  <img src="assets/brand/logo.png" alt="PortPilot Logo" width="140" height="140">
+  <h1>PortPilot</h1>
+  <p><strong>A Modern Linux Desktop Platform for Ports, Sockets, Firewall, and Real-Time Network Observability</strong></p>
+
+  <p>
+    <a href="https://github.com/0xamirreza/PortPilot/releases"><img src="https://img.shields.io/badge/Release-AppImage%20(x86__64)-blue?style=flat-square" alt="Release"></a>
+    <img src="https://img.shields.io/badge/Platform-Linux-green?style=flat-square" alt="Platform: Linux">
+    <img src="https://img.shields.io/badge/GUI-Gio%20(Pure%20Go)-blueviolet?style=flat-square" alt="GUI: Gio">
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-lightgrey?style=flat-square" alt="License"></a>
+  </p>
+</div>
+
+---
 
 PortPilot is a Linux desktop tool for bound TCP and UDP sockets, the processes that own them, firewall rules, services, and container port listings. The window runs as a normal user. Firewall, service, and signal changes go through the same binary as `portpilot __privileged`, started with pkexec for one operation.
 
@@ -220,7 +233,7 @@ make build
 - Multi-threaded process inode resolution traversing `/proc/<pid>/task/<tid>/fd` and seamless real-time merging of live user process scans with privileged root caches, eliminating `owner unknown` on active sockets.
 - Topology screen with dual-mode navigation:
   - **Process Hubs**: Visual directional flow lanes, per-socket live packet/throughput drill-down monitor, and smart aggregation for kernel closing sockets (`FIN-WAIT-1`, `FIN-WAIT-2`, `TIME-WAIT`, `LAST-ACK`, `CLOSE-WAIT`).
-  - **🌐 World Geolocation**: Interactive visual 3D Earth Globe (`🌍 3D GLOBE`) with orthographic projection, graticule grid, detailed continent landmasses, smooth auto-rotation, mouse-drag yaw/pitch rotation, and animated great-circle ballistic trajectory arcs from Local Host (Iran 🇮🇷) to remote destination countries, with an alternate flat map mode (`🗺️ 2D MAP`), country focus zooming, offline IP geolocation engine (`internal/core/network/geoip`), country breakdown pills (`DE`, `US`, `FI`, `NL`, `IR`, etc.), and a comprehensive live flow stream table.
+  - **🌐 World Geolocation**: Interactive visual 3D Earth Globe (`🌍 3D GLOBE`) with orthographic projection, graticule grid, detailed continent landmasses, smooth auto-rotation, mouse-drag yaw/pitch rotation, and animated great-circle ballistic trajectory arcs from Local Host to remote destination countries, with an alternate flat map mode (`🗺️ 2D MAP`), country focus zooming, offline IP geolocation engine (`internal/core/network/geoip`), country breakdown pills (`DE`, `US`, `FI`, `NL`, `IR`, etc.), and a comprehensive live flow stream table.
 - Overview screen with structured metric cards, clean interactive network interfaces table, and a dedicated `FIREWALL BACKEND` status plate (mode, active status, rule counts, temporary schedules, and boot persistence).
 - Processes screen split-pane workstation with real-time search, category filters (`ALL`, `USER`, `ROOT`, `SERVICES`), interactive Process Inspector panel, and signal safety controls (`SIGTERM`, `SIGKILL`).
 - Services screen with interactive search, status tabs (`ALL`, `RUNNING`, `INACTIVE`, `FAILED`), and robust systemd unit parser supporting distributions with or without the `LOAD` column.
@@ -235,6 +248,33 @@ make build
 - Docker, LXC, and libvirt listings after the Containers screen is opened. Those listings do not change container networks.
 - SQLite audit of application actions, plus a root audit file when the helper runs.
 - Scrollbars on the lists that extend past the page.
+
+## Development & Testing
+
+### Common Commands
+
+```sh
+make test      # Run full Go test suite (with fixtures, safe for live host)
+make lint      # Check formatting and run go vet
+make build     # Compile binary into bin/portpilot
+make doctor    # Run read-only system and dependency diagnostics
+make appimage  # Package self-contained AppDir and AppImage
+make clean     # Remove build artifacts
+```
+
+### Automated Release Workflow (`./run.sh`)
+
+For contributors and maintainers, the repository includes an interactive release automation script:
+
+```sh
+./run.sh
+```
+
+When prompted, enter the version number or release update message (e.g. `UPDATED ==> 0.9.0` or `0.9.0`):
+1. Automatically synchronizes `internal/version/version.go` with the target release version.
+2. Executes `make test` and `make build` to verify integrity before committing.
+3. Automatically stages changes, commits, creates an annotated git release tag (`v0.9.0`), and pushes to GitHub.
+4. Triggers the automated GitHub Actions CI/CD pipeline to compile and publish the 64-bit AppImage (`PortPilot-x86_64.AppImage`) directly to [GitHub Releases](https://github.com/0xamirreza/PortPilot/releases).
 
 ## Distribution & Packaging
 
